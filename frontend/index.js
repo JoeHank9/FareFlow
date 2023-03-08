@@ -91,6 +91,15 @@ async function signedInFlow() {
 
 }
 
+async function donationmx (amount){
+  let data = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=mxn").then(response => response.json())
+  const near2usd = data['near']['mxn']
+  const near_in_pesos = amount * near2usd
+  const rounded_two_decimals = Math.round(near_in_pesos * 100) / 100
+  console.log(rounded_two_decimals);
+  return rounded_two_decimals;
+}
+
 async function getAndShowDonations(){
   document.getElementById('donations-table').innerHTML = 'Loading ...'
 
@@ -99,12 +108,14 @@ async function getAndShowDonations(){
 
   document.getElementById('donations-table').innerHTML = ''
 
-  donations.forEach(elem => {
+  donations.forEach(async elem => {
     let tr = document.createElement('tr')
+    let pesos = await donationmx(elem.total_amount)
     tr.innerHTML = `
       <tr>
         <th scope="row">${elem.account_id}</th>
         <td>${elem.total_amount}</td>
+        <td>${pesos}</td>
       </tr>
     `
     document.getElementById('donations-table').appendChild(tr)
