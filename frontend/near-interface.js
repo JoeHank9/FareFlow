@@ -31,9 +31,15 @@ export class Contract {
     return utils.format.formatNearAmount(donation_amount);
   }
 
-  async donate(amount) {
+  async deposit(date,amount) {
     let deposit = utils.format.parseNearAmount(amount.toString())
-    let response = await this.wallet.callMethod({ contractId: this.contractId, method: "donate", deposit })
+    let response = await this.wallet.callMethod({ contractId: this.contractId, method: "deposit", args: { time: parseInt(date)}, deposit })
+    return response
+  }
+
+  async payment(date,amount) {
+    let deposit = utils.format.parseNearAmount(amount.toString())
+    let response = await this.wallet.callMethod({ contractId: this.contractId, method: "payment", args: { time: parseInt(date)}, amount: deposit })
     return response
   }
 

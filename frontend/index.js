@@ -30,11 +30,16 @@ document.querySelector('form').onsubmit = async (event) => {
   // get elements from the form using their id attribute
   const { fieldset, donation } = event.target.elements
 
+  //get timestamp date
+  let date = new Date().getTime();
+  date.toString();
+  console.log(date);
+
   // disable the form while the value gets updated on-chain
   fieldset.disabled = true
 
   try {
-    await contract.donate(donation.value)
+    await contract.deposit(date,donation.value)
   } catch (e) {
     alert(
       'Something went wrong! ' +
@@ -111,6 +116,10 @@ async function getAndShowDonations(){
   donations.forEach(async elem => {
     let tr = document.createElement('tr')
     let pesos = await donationmx(elem.total_amount)
+    document.querySelectorAll('[data-behavior=saldo]').forEach(el => {
+      el.innerText = pesos
+      el.value = pesos
+    })
     tr.innerHTML = `
       <tr>
         <th scope="row">${elem.account_id}</th>
@@ -136,4 +145,12 @@ window.set_donationmx = async function(amount){
   const amount_in_near = amount / near2usd
   const rounded_two_decimals = Math.round(amount_in_near * 100) / 100
   document.querySelector('#donation').value = rounded_two_decimals
+}
+
+window.paybus = async function(){
+  //get timestamp date
+  let date = new Date().getTime();
+  date.toString();
+  console.log(date);
+  await contract.payment(date,".1".toString())
 }

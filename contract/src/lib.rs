@@ -1,21 +1,51 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use std::collections::HashMap;
 use near_sdk::{env, near_bindgen, AccountId};
-use near_sdk::collections::{UnorderedMap};
+use near_sdk::collections::{LookupMap, UnorderedMap, UnorderedSet};
+use near_sdk::serde::{Deserialize, Serialize};
+use near_sdk::json_types::U128;
+/// Raw type for timestamp in nanoseconds
+pub type Timestamp = u64;
+/// Raw type for 32 bytes of the hash.
+pub type CryptoHash = [u8; 32];
 
-mod donation;
+use crate::internal::*;
+pub use crate::metadata::*;
+pub use crate::deposit::*;
+pub use crate::enumeration::*;
+
+mod internal;
+mod deposit;
+mod metadata;
+mod enumeration;
 
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Contract {
   pub beneficiary: AccountId,
-  pub donations: UnorderedMap<AccountId, u128>,
+  pub total_deposit: UnorderedMap<AccountId, u128>,
+  pub creditSt: UnorderedMap<AccountId, U128>,
+  pub creditUsed: UnorderedMap<AccountId, U128>,
+  pub deposit: UnorderedMap<Timestamp, Deposit>,
+  pub deposit_per_owner: LookupMap<AccountId, UnorderedSet<Timestamp>>
+}
+
+/// Helper structure for keys of the persistent collections.
+#[derive(BorshSerialize)]
+pub enum StorageKey {
+    DepositPerOwner,
+    DepositPerOwnerInner { account_id_hash: CryptoHash },
 }
 
 impl Default for Contract {
   fn default() -> Self {
     Self{
       beneficiary: "v1.faucet.nonofficial.testnet".parse().unwrap(),
-      donations: UnorderedMap::new(b"d"),
+      total_deposit: UnorderedMap::new(b"a"),
+      creditSt: UnorderedMap::new(b"b"),
+      creditUsed: UnorderedMap::new(b"b"),
+      deposit: UnorderedMap::new(b"c"),
+      deposit_per_owner: LookupMap::new(StorageKey::DepositPerOwner.try_to_vec().unwrap()),
     }
   }
 }
@@ -27,7 +57,11 @@ impl Contract {
   pub fn init(beneficiary: AccountId) -> Self {
     Self {
       beneficiary,
-      donations: UnorderedMap::new(b"d"),
+      deposit: UnorderedMap::new(b"d"),
+      total_deposit: UnorderedMap::new(b"a"),
+      creditSt: UnorderedMap::new(b"b"),
+      creditUsed: UnorderedMap::new(b"b"),
+      deposit_per_owner: LookupMap::new(StorageKey::DepositPerOwner.try_to_vec().unwrap()),
     }
   }
 
@@ -40,63 +74,5 @@ impl Contract {
   #[private]
   pub fn change_beneficiary(&mut self, beneficiary: AccountId) {
     self.beneficiary = beneficiary;
-  }
-}
-
-
-#[cfg(test)]
-mod tests {
-  use super::*;
-  use near_sdk::testing_env;
-  use near_sdk::test_utils::VMContextBuilder;
-  use near_sdk::Balance;
-
-  const BENEFICIARY: &str = "beneficiary";
-  const NEAR: u128 = 1000000000000000000000000;
-
-  #[test]
-  fn initializes() {
-      let contract = Contract::init(BENEFICIARY.parse().unwrap());
-      assert_eq!(contract.beneficiary, BENEFICIARY.parse().unwrap())
-  }
-
-  #[test]
-  fn donate() {
-      let mut contract = Contract::init(BENEFICIARY.parse().unwrap());
-
-      // Make a donation
-      set_context("donor_a", 1*NEAR);
-      contract.donate();
-      let first_donation = contract.get_donation_for_account("donor_a".parse().unwrap());
-
-      // Check the donation was recorded correctly
-      assert_eq!(first_donation.total_amount.0, 1*NEAR);
-
-      // Make another donation
-      set_context("donor_b", 2*NEAR);
-      contract.donate();
-      let second_donation = contract.get_donation_for_account("donor_b".parse().unwrap());
-
-      // Check the donation was recorded correctly
-      assert_eq!(second_donation.total_amount.0, 2*NEAR);
-
-      // User A makes another donation on top of their original
-      set_context("donor_a", 1*NEAR);
-      contract.donate();
-      let first_donation = contract.get_donation_for_account("donor_a".parse().unwrap());
-
-      // Check the donation was recorded correctly
-      assert_eq!(first_donation.total_amount.0, 1*NEAR * 2);
-
-      assert_eq!(contract.number_of_donors(), 2);
-  }
-
-  // Auxiliar fn: create a mock context
-  fn set_context(predecessor: &str, amount: Balance) {
-    let mut builder = VMContextBuilder::new();
-    builder.predecessor_account_id(predecessor.parse().unwrap());
-    builder.attached_deposit(amount);
-
-    testing_env!(builder.build());
   }
 }
