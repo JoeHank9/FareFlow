@@ -57,6 +57,39 @@ impl Contract {
     U128(deposit_so_far)
   }
 
+  // pub fn depositst(&mut self, time: Timestamp, amount: String) -> U128 {
+  //   // Get who is calling the method and how much $NEAR they attached
+  //   let donor: AccountId = env::predecessor_account_id();
+  //   let deposit_amount: Balance = amount.parse().unwrap();
+
+  //   let mut deposit_so_far = self.total_deposit.get(&donor).unwrap_or(0);
+
+  //   let to_transfer: Balance = if deposit_so_far == 0 {
+  //     // This is the user's first donation, lets register it, which increases storage
+  //     assert!(deposit_amount > STORAGE_COST, "Attach at least {} yoctoNEAR", STORAGE_COST);
+
+  //     // Subtract the storage cost to the amount to transfer
+  //     deposit_amount - STORAGE_COST
+  //   }else{
+  //     deposit_amount
+  //   };
+
+  //   // Persist in storage the amount donated so far
+  //   deposit_so_far += deposit_amount;
+  //   self.total_deposit.insert(&donor, &deposit_so_far);
+  //   self.internal_add_deposit_to_owner(&donor, &time);
+    
+  //   log!("Thank you {} for deposit {}! You donated a total of {}", donor.clone(), deposit_amount, deposit_so_far);
+    
+  //   // Send the money to the beneficiary
+  //   Promise::new(self.beneficiary.clone()).transfer(to_transfer);
+  //   let arguments = {"receiver_id":"joehank.testnet", "amount":"1000000000000000000000000","msg":""};
+  //   Promise::function_call("meta-v2.pool.testnet", "ft_transfer".to_string(), arguments, amount);
+
+  //   // Return the total amount donated so far
+  //   U128(deposit_so_far)
+  // } 
+
   pub fn payment(&mut self, time: Timestamp, amount: String) -> U128 {
     // Get who is calling the method and how much $NEAR they attached
     let payer: AccountId = env::predecessor_account_id();

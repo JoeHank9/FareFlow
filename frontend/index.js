@@ -147,10 +147,38 @@ window.set_donationmx = async function(amount){
   document.querySelector('#donation').value = rounded_two_decimals
 }
 
-window.paybus = async function(){
+window.payBus = async function(){
   //get timestamp date
   let date = new Date().getTime();
   date.toString();
-  console.log(date);
-  await contract.payment(date,".1".toString())
+  console.log("Pagando Bus");
+  await contract.payment(date,".01".toString())
+  location.reload()
+}
+
+window.payTren = async function(){
+  //get timestamp date
+  let date = new Date().getTime();
+  date.toString();
+  console.log("Pagando Tren");
+  await contract.payment(date,".09".toString())
+  location.reload()
+}
+
+window.payMetro = async function(){
+  //get timestamp date
+  let date = new Date().getTime();
+  date.toString();
+  console.log("Pagando Metro");
+  await contract.payment(date,".05".toString())
+  location.reload()
+}
+
+window.payMBus = async function(){
+  //get timestamp date
+  let date = new Date().getTime();
+  date.toString();
+  console.log("Pagando MetroBus");
+  await contract.payment(date,".06".toString())
+  location.reload()
 }
