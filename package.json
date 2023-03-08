@@ -5,7 +5,7 @@
     "start": "npm run start",
     "deploy": "cd contract && ./deploy.sh",
     "build": "npm run build:web",
-    "build:web": "cd frontend && npm run build"
+    "build:web": "cd frontend && npm run build && npm run start"
   },
   "devDependencies": {
     "near-cli": "^3.3.0"
