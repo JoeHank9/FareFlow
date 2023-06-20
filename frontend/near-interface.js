@@ -26,6 +26,19 @@ export class Contract {
     return donations
   }
 
+  async latestDeposits() {
+    const number_of_depositors = await this.wallet.viewMethod({ contractId: this.contractId, method: "number_of_depositors" })
+    const min = number_of_depositors > 10 ? number_of_depositors - 9 : 0
+
+    let deposits = await this.wallet.viewMethod({ contractId: this.contractId, method: "get_deposits", args: { from_index: min.toString(), limit: number_of_depositors } })
+
+    deposits.forEach(elem => {
+      elem.total_amount = utils.format.formatNearAmount(elem.total_amount);
+    })
+
+    return deposits
+  }
+
   async getDonationFromTransaction(txhash) {
     let donation_amount = await this.wallet.getTransactionResult(txhash);
     return utils.format.formatNearAmount(donation_amount);
@@ -39,7 +52,7 @@ export class Contract {
 
   async depositstN(date,amount) {
     let deposit = utils.format.parseNearAmount(amount.toString())
-    let response = await this.wallet.callMethod({ contractId: this.contractId, method: "deposit", args: { time: parseInt(date)}, deposit })
+    let response = await this.wallet.callMethod({ contractId: this.contractId, method: "depositst", args: { time: parseInt(date)}, deposit })
     return response
   }
 

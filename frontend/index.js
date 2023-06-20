@@ -132,8 +132,8 @@ async function getAndShowDonations(){
 }
 
 window.set_donation = async function(amount){
-  let data = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=usd").then(response => response.json())
-  const near2usd = data['near']['usd']
+  let data = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=staked-near&vs_currencies=usd").then(response => response.json())
+  const near2usd = data['staked-near']['usd']
   const amount_in_near = amount / near2usd
   const rounded_two_decimals = Math.round(amount_in_near * 100) / 100
   document.querySelector('#donation').value = rounded_two_decimals
@@ -146,7 +146,7 @@ window.set_donationmx = async function(amount){
   const rounded_two_decimals = Math.round(amount_in_near * 100) / 100
   document.querySelector('#donation').value = rounded_two_decimals
 }
-
+//https://api.coingecko.com/api/v3/simple/price?ids=staked-near&vs_currencies=usd
 window.payBus = async function(){
   //get timestamp date
   let date = new Date().getTime();
