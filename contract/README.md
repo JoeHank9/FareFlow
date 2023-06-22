@@ -2,49 +2,6 @@
 
 The smart contract exposes multiple methods to handle donating money to a `beneficiary` set on initialization.
 
-```rust
-#[payable] // Public - People can attach money
-pub fn donate(&mut self) -> U128 {
-  // Get who is calling the method
-  // and how much $NEAR they attached
-  let donor: AccountId = env::predecessor_account_id();
-  let donation_amount: Balance = env::attached_deposit();
-
-  let mut donated_so_far = self.donations.get(&donor).unwrap_or(0);
-
-  let to_transfer: Balance = if donated_so_far == 0 {
-    // Registering the user's first donation increases storage
-    assert!(donation_amount > STORAGE_COST, "Attach at least {} yoctoNEAR", STORAGE_COST);
-
-    // Subtract the storage cost to the amount to transfer
-    donation_amount - STORAGE_COST
-  }else{
-    donation_amount
-  };
-
-  // Persist in storage the amount donated so far
-  donated_so_far += donation_amount;
-  self.donations.insert(&donor, &donated_so_far);
-  
-  log!("Thank you {} for donating {}! You donated a total of {}", donor.clone(), donation_amount, donated_so_far);
-  
-  // Send the money to the beneficiary
-  Promise::new(self.beneficiary.clone()).transfer(to_transfer);
-
-  // Return the total amount donated so far
-  U128(donated_so_far)
-}
-```
-
-<br />
-
-# Quickstart
-
-1. Make sure you have installed [rust](https://rust.org/).
-2. Install the [`NEAR CLI`](https://github.com/near/near-cli#setup)
-
-<br />
-
 ## 1. Build and Deploy the Contract
 You can automatically compile and deploy the contract in the NEAR testnet by running:
 

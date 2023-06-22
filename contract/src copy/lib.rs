@@ -26,28 +26,28 @@ mod enumeration;
 pub struct Contract {
   pub beneficiary: AccountId,
   pub total_deposit: UnorderedMap<AccountId, u128>,
-  pub timelocked: UnorderedMap<AccountId, Timestamp>,
+  pub deposit_st: UnorderedMap<AccountId, u128>,
   pub deposit: UnorderedMap<Timestamp, Deposit>,
-  pub deposits_per_owner: LookupMap<AccountId, UnorderedSet<Timestamp>>,
+  pub deposit_per_owner: LookupMap<AccountId, UnorderedSet<Timestamp>>,
   pub metapoolcontract: String
 }
 
 /// Helper structure for keys of the persistent collections.
 #[derive(BorshSerialize)]
 pub enum StorageKey {
-    DepositsPerOwner,
-    DepositsPerOwnerInner { account_id_hash: CryptoHash },
+    DepositPerOwner,
+    DepositPerOwnerInner { account_id_hash: CryptoHash },
 }
 
 impl Default for Contract {
   fn default() -> Self {
     Self{
-      beneficiary: "stakedemy.testnet".parse().unwrap(),
+      beneficiary: "v1.faucet.nonofficial.testnet".parse().unwrap(),
       metapoolcontract: "meta-v2.pool.testnet".parse().unwrap(),
       total_deposit: UnorderedMap::new(b"a"),
-      timelocked: UnorderedMap::new(b"d"),
+      deposit_st: UnorderedMap::new(b"b"),
       deposit: UnorderedMap::new(b"c"),
-      deposits_per_owner: LookupMap::new(StorageKey::DepositsPerOwner.try_to_vec().unwrap()),
+      deposit_per_owner: LookupMap::new(StorageKey::DepositPerOwner.try_to_vec().unwrap()),
     }
   }
 }
@@ -56,14 +56,14 @@ impl Default for Contract {
 impl Contract {
   #[init]
   #[private] // Public - but only callable by env::current_account_id()
-  pub fn init(beneficiary: AccountId) -> Self {
+  pub fn init(beneficiary: AccountId, metapoolcontract: String) -> Self {
     Self {
       beneficiary,
-      metapoolcontract: "meta-v2.pool.testnet".parse().unwrap(),
-      deposit: UnorderedMap::new(b"c"),
-      timelocked: UnorderedMap::new(b"d"),
+      metapoolcontract,
+      deposit: UnorderedMap::new(b"d"),
       total_deposit: UnorderedMap::new(b"a"),
-      deposits_per_owner: LookupMap::new(StorageKey::DepositsPerOwner.try_to_vec().unwrap()),
+      deposit_st: UnorderedMap::new(b"b"),
+      deposit_per_owner: LookupMap::new(StorageKey::DepositPerOwner.try_to_vec().unwrap()),
     }
   }
 

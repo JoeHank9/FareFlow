@@ -19,10 +19,10 @@ impl Contract {
         timestamp: &Timestamp,
     ) {
         //get the set of tokens for the given account
-        let mut deposit_set = self.deposits_per_owner.get(account_id).unwrap_or_else(|| {
+        let mut deposit_set = self.deposit_per_owner.get(account_id).unwrap_or_else(|| {
             //if the account doesn't have any tokens, we create a new unordered set
             UnorderedSet::new(
-                StorageKey::DepositsPerOwnerInner {
+                StorageKey::DepositPerOwnerInner {
                     //we get a new unique prefix for the collection
                     account_id_hash: hash_account_id(&account_id),
                 }
@@ -35,7 +35,7 @@ impl Contract {
         deposit_set.insert(timestamp);
 
         //we insert that set for the given account ID. 
-        self.deposits_per_owner.insert(account_id, &deposit_set);
+        self.deposit_per_owner.insert(account_id, &deposit_set);
     }
 
     
