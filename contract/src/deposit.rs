@@ -48,11 +48,11 @@ impl Contract {
     self.internal_add_deposit_to_owner(&donor, &time);
     self.timelocked.insert(&donor, &end_time_stake);
 
-    // stake the deposit
-    // ext_transfer::ext(self.metapoolcontract.parse::<AccountId>().unwrap())
-    // .with_unused_gas_weight(300_000_000_000_000)
-    // .with_attached_deposit(deposit_amount)
-    // .deposit_and_stake();
+    //stake the deposit
+    ext_transfer::ext(self.metapoolcontract.parse::<AccountId>().unwrap())
+    .with_unused_gas_weight(300_000_000_000_000)
+    .with_attached_deposit(deposit_amount)
+    .deposit_and_stake();
     
     log!("Thank you {} for deposit {}! You donated a total of {}, your NEARs will be staked until {}", 
     donor.clone(), deposit_amount, deposit_so_far, end_time_stake.clone());
@@ -65,10 +65,10 @@ impl Contract {
 
     let donor: AccountId = env::predecessor_account_id();
     let mut end_time_stake = self.timelocked.get(&donor).unwrap_or(0);
-    let mut amount = self.total_deposit.get(&donor).unwrap_or(0);
+    let mut amount: Balance = self.total_deposit.get(&donor).unwrap_or(0);
 
     assert!(
-      amount > 1,
+      amount > 1000000000000000000000000,
       "Deposit at least 1 NEAR",
     );
 
@@ -76,10 +76,14 @@ impl Contract {
       time >= end_time_stake,
       "locked until {}",end_time_stake
     );
-    
+
+    let mut float_amount: f64 = amount as f64;
+    float_amount = float_amount * 1.03;
+    amount = float_amount as u128;
     end_time_stake = end_time_stake + 259200;
     self.timelocked.insert(&donor, &end_time_stake);
     self.total_deposit.insert(&donor, &0);
+    self.deposit_to_withdraw.insert(&donor, &amount);
 
     // unstake the deposit
     // ext_transfer::ext(self.metapoolcontract.parse::<AccountId>().unwrap())

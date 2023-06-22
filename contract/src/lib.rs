@@ -27,7 +27,7 @@ pub struct Contract {
   pub beneficiary: AccountId,
   pub total_deposit: UnorderedMap<AccountId, u128>,
   pub timelocked: UnorderedMap<AccountId, Timestamp>,
-  pub deposit: UnorderedMap<Timestamp, Deposit>,
+  pub deposit_to_withdraw: UnorderedMap<AccountId, u128>,
   pub deposits_per_owner: LookupMap<AccountId, UnorderedSet<Timestamp>>,
   pub metapoolcontract: String
 }
@@ -42,11 +42,11 @@ pub enum StorageKey {
 impl Default for Contract {
   fn default() -> Self {
     Self{
-      beneficiary: "stakedemy.testnet".parse().unwrap(),
+      beneficiary: "one.stakedemy.testnet".parse().unwrap(),
       metapoolcontract: "meta-v2.pool.testnet".parse().unwrap(),
       total_deposit: UnorderedMap::new(b"a"),
       timelocked: UnorderedMap::new(b"d"),
-      deposit: UnorderedMap::new(b"c"),
+      deposit_to_withdraw: UnorderedMap::new(b"c"),
       deposits_per_owner: LookupMap::new(StorageKey::DepositsPerOwner.try_to_vec().unwrap()),
     }
   }
@@ -60,7 +60,7 @@ impl Contract {
     Self {
       beneficiary,
       metapoolcontract: "meta-v2.pool.testnet".parse().unwrap(),
-      deposit: UnorderedMap::new(b"c"),
+      deposit_to_withdraw: UnorderedMap::new(b"c"),
       timelocked: UnorderedMap::new(b"d"),
       total_deposit: UnorderedMap::new(b"a"),
       deposits_per_owner: LookupMap::new(StorageKey::DepositsPerOwner.try_to_vec().unwrap()),
