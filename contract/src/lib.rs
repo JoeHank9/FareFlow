@@ -42,7 +42,7 @@ pub enum StorageKey {
 impl Default for Contract {
   fn default() -> Self {
     Self{
-      beneficiary: "one.stakedemy.testnet".parse().unwrap(),
+      beneficiary: "stakedemy.testnet".parse().unwrap(),
       metapoolcontract: "meta-v2.pool.testnet".parse().unwrap(),
       total_deposit: UnorderedMap::new(b"a"),
       timelocked: UnorderedMap::new(b"d"),

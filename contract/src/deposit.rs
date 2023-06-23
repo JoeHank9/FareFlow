@@ -21,17 +21,18 @@ pub struct Donation {
 #[near_bindgen]
 impl Contract {
   #[payable] // Public - People can attach money
-  pub fn deposit(&mut self, time: Timestamp) -> U128 {
+  pub fn deposit(&mut self) -> U128 {
     // Get who is calling the method and how much $NEAR they attached
     let donor: AccountId = env::predecessor_account_id();
+    let time: Timestamp = env::block_timestamp();
     let deposit_amount: Balance = env::attached_deposit();
-    let amount_to_stake: u128 = deposit_amount / 1000000000000000000000000;
     let mut deposit_so_far = self.total_deposit.get(&donor).unwrap_or(0);
-    let end_time_stake = time + 31556926;
+    let end_time_stake = time + 31556926000000000;
 
+    log!("Tiempo recibido {}, tiempo al finalizar {}", time, end_time_stake);
     let to_transfer: Balance = if deposit_so_far == 0 {
       // This is the user's first donation, lets register it, which increases storage
-      assert!(deposit_amount > STORAGE_COST, "Attach at least {} yoctoNEAR", STORAGE_COST);
+      assert!(deposit_amount > 2000000000000000000000000, "Attach at least 2 NEARs");
 
       // Subtract the storage cost to the amount to transfer
       deposit_amount - STORAGE_COST
@@ -61,15 +62,16 @@ impl Contract {
     U128(deposit_so_far)
   }
 
-  pub fn unstake(&mut self, time: Timestamp) -> U128 {
+  pub fn unstake(&mut self) -> U128 {
 
     let donor: AccountId = env::predecessor_account_id();
+    let time: Timestamp = env::block_timestamp();
     let mut end_time_stake = self.timelocked.get(&donor).unwrap_or(0);
     let mut amount: Balance = self.total_deposit.get(&donor).unwrap_or(0);
 
     assert!(
-      amount > 1000000000000000000000000,
-      "Deposit at least 1 NEAR",
+      amount > 2000000000000000000000000,
+      "Deposit at least 2 NEAR",
     );
 
     assert!(
@@ -80,45 +82,54 @@ impl Contract {
     let mut float_amount: f64 = amount as f64;
     float_amount = float_amount * 1.03;
     amount = float_amount as u128;
-    end_time_stake = end_time_stake + 259200;
+    end_time_stake = end_time_stake + 259200000000000;
+
+    // unstake the deposit
+    ext_transfer::ext(self.metapoolcontract.parse::<AccountId>().unwrap())
+    .with_unused_gas_weight(300_000_000_000_000)
+    .unstake(amount);
+
+    //log!("Tiempo recibido {}, tiempo al finalizar {}", &time, &end_time_stake);
     self.timelocked.insert(&donor, &end_time_stake);
     self.total_deposit.insert(&donor, &0);
     self.deposit_to_withdraw.insert(&donor, &amount);
 
-    // unstake the deposit
-    // ext_transfer::ext(self.metapoolcontract.parse::<AccountId>().unwrap())
-    // .with_unused_gas_weight(300_000_000_000_000)
-    // .unstake(amount);
-
     U128(amount)
   }
 
-  pub fn withdraw(&mut self, time: Timestamp) -> U128 {
+  pub fn withdraw(&mut self) -> U128 {
     
+    let time: Timestamp = env::block_timestamp();
     let donor: AccountId = env::predecessor_account_id();
-    let  mut amount = self.total_deposit.get(&donor).unwrap_or(0);
+    let amount = self.deposit_to_withdraw.get(&donor).unwrap_or(0);
+    let amount_unstaked = self.total_deposit.get(&donor).unwrap_or(0);
+    let end_time_stake = self.timelocked.get(&donor).unwrap_or(0);
+
+    assert!(
+      amount == 0,
+      "You don't have amount unstaked to withdraw",
+    );
+
+    assert!(
+      amount_unstaked > 2000000000000000000000000,
+      "Unstake at least 2 NEAR",
+    );
+
+    assert!(
+      time >= end_time_stake,
+      "locked until {}",end_time_stake
+    );
+
+    // withdraw the amount unstaked
+    ext_transfer::ext(self.metapoolcontract.parse::<AccountId>().unwrap())
+    .with_unused_gas_weight(300_000_000_000_000)
+    .withdraw_unstaked();
+
+    //transfer amount unstaked
+    Promise::new(donor.clone()).transfer(amount_unstaked);
 
     U128(amount)
 
   }
-
-  // pub fn payment(&mut self, time: Timestamp, amount: String) -> U128 {
-  //   // Get who is calling the method and how much $NEAR they attached
-  //   let payer: AccountId = env::predecessor_account_id();
-  //   let payment_amount: Balance = amount.parse().unwrap();
-
-  //   let mut deposit_so_far = self.total_deposit.get(&payer).unwrap_or(0);
-
-  //   assert!(payment_amount <= deposit_so_far, "You need to deposit first NEAR");
-
-  //   // Persist in storage the amount donated so far
-  //   deposit_so_far -= payment_amount;
-  //   self.total_deposit.insert(&payer, &deposit_so_far);
-    
-  //   log!("Gracias {} for pagar {}! Te queda un saldo total de {}", payer.clone(), payment_amount, deposit_so_far);
-
-  //   // Return the total amount donated so far
-  //   U128(deposit_so_far)
-  // }
 
 }

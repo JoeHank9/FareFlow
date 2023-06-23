@@ -11,6 +11,13 @@ impl Contract {
     }
   }
 
+  pub fn get_amount_to_unstake(&self, account_id: AccountId) -> Donation {
+    Donation {
+      account_id: account_id.clone(),
+      total_amount: U128(self.deposit_to_withdraw.get(&account_id).unwrap_or(0))
+    }
+  }
+
   // Public - get total number of donors
   pub fn number_of_donors(&self) -> u64 {
     self.total_deposit.len()

@@ -9,6 +9,6 @@ use near_sdk::{ext_contract};
 pub trait ExtTransfer {
     //fn ft_transfer(&self, receiver_id: AccountId, amount: String) -> String;
     fn deposit_and_stake(&self) -> String;
-    fn unstake(&self, amount: String) -> String;
+    fn unstake(&self, amount: u128) -> String;
     fn withdraw_unstaked(&self) -> String;
 }
